@@ -1,3 +1,4 @@
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -86,6 +87,7 @@ def solve_cholesky(m, A, b):
 
     R = L @ np.sqrt(D)
 
+
     w = forward_substitution(m, R, AT @ b)
     x = back_substitution(m, R.T, w)
 
@@ -103,14 +105,15 @@ def solve_qr(m, A, b):
     Q, R = np.linalg.qr(A)
     b1 = Q.T @ b
 
-    x = back_substitution(m, R, b1)
 
-    # print(x)
+    x = back_substitution(m, R, b1)
 
     return A @ x
 
+def condition_number(A):
+    S = np.linalg.svd(A)[1]
 
-
+    return abs(np.max(S)/np.min(S))
 
 def main():
     np.random.seed(0)
@@ -120,23 +123,28 @@ def main():
     x, y1, y2 = generate_data(n, eps=1)
     A = create_design_matrix(x, n, m)
 
-    solve_cholesky(m ,A, y1)
 
     y_qr1 = solve_qr(m, A, y1)
     y_qr2 = solve_qr(m, A, y2)
 
-    y_tilde1 = solve_cholesky(m, A, y1)
-    y_tilde2 = solve_cholesky(m, A, y2)
+    y_cholesky1 = solve_cholesky(m, A, y1)
+    y_cholesky2 = solve_cholesky(m, A, y2)
+
+
 
 
     fig, ax = plt.subplots(2, 1)
-    ax[0].scatter(x, y1, label='data set 1')
-    ax[0].plot(x, y_tilde1, 'r--', label='least squares fit')
-    ax[1].scatter(x, y2, label='data set 2')
-    ax[1].plot(x, y_tilde2, 'r--', label='least squares fit')
+    ax[0].plot(x, y1, 'o')
+    ax[0].plot(x, y_qr1, 'c', label='Least Squares with QR')
+    ax[0].plot(x, y_cholesky1, 'r--', label='Least Squares with Cholesky')
+
+    ax[1].plot(x, y2, 'o')
+    ax[1].plot(x, y_qr2, 'c', label='Least Squares with QR')
+    ax[1].plot(x, y_cholesky2, 'r--', label='Least Squares with Cholesky')
 
     ax[0].legend()
     ax[1].legend()
+    plt.savefig("leastSquares_degree_" + str(m) + ".pdf")
     plt.show()
 
 
