@@ -46,16 +46,25 @@ def compress(A, r):
     q = m - r
     U, S, VT = np.linalg.svd(A)
 
+
+
     U = U[:, :q]
-    S = S[:q]
+    S = np.diag(S[:q])
     VT = VT[:q, :]
 
-    S_full = np.zeros((q, q))
 
-    for i in range(q):
-        S_full[i, i] = S[i]
 
-    A_compressed = U @ S_full @ VT
+    # print(np.diag(S))
+
+    # S_full = np.zeros((q, q))
+    #
+    # for i in range(q):
+    #     S_full[i, i] = S[i]
+
+    A_compressed = U @ S @ VT
+
+
+
 
     return A_compressed
 
@@ -66,15 +75,17 @@ def main():
     image_names = os.listdir(dir)
     images = preprocess_images(dir, image_names)
 
-    r = 600
 
-    plt.imshow(images[2])
+    plt.imshow(images[1])
     plt.show()
 
-    im_reduced = compress(images[2], r)
+    r = 639
+
+    im_reduced = compress(images[1], r)
 
     plt.imshow(im_reduced)
     plt.show()
+
 
 
 
