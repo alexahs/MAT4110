@@ -10,7 +10,7 @@ def rgb2gray(im):
 
 
 def compression_ratio(m, n, r):
-    pass
+    return m*n/(r*(1 + m + n))
 
 
 def preprocess_images(dir, image_names):
@@ -28,45 +28,53 @@ def preprocess_images(dir, image_names):
 
 
 def compress(A, r):
-    """
-    A = (m, n)
-    U - (m, m)
-    S - (m, n)
-    VT - (n, n)
-
-
-    A = (m, n)
-    U = (m, q)
-    S = (q, q)
-    VT = (q, n)
-
-    """
-
-    m, n = A.shape
-    q = m - r
     U, S, VT = np.linalg.svd(A)
+    U_r = U[:, :r]
+    S_r = np.diag(S[:r])
+    VT_r = VT[:r, :]
 
 
-
-    U = U[:, :q]
-    S = np.diag(S[:q])
-    VT = VT[:q, :]
-
-
-
-    # print(np.diag(S))
-
-    # S_full = np.zeros((q, q))
-    #
-    # for i in range(q):
-    #     S_full[i, i] = S[i]
-
-    A_compressed = U @ S @ VT
-
-
-
-
+    A_compressed = U_r @ S_r @ VT_r
     return A_compressed
+
+
+
+def plot_singular_values(images, r_vals):
+
+    fig, ax = plt.subplots(1, 1)
+
+    legends = ['Jellyfish', 'Chessboard', 'Skyline']
+
+    for i in range(len(images)):
+        U, S, VT = np.linalg.svd(images[i])
+        ax.plot(np.log10(S), label=legends[i])
+        ax.scatter(r_vals[i], np.log10(S[r_vals[i]]), c='r')
+        ax.legend()
+        ax.grid()
+
+    ax.set_xlabel('r')
+    ax.set_ylabel(r'$\log_{10}(\sigma)$')
+    plt.show()
+
+
+
+def plot_images(images, r_vals):
+
+    for i in range(len(images)):
+        m, n = images[i].shape
+        im_r = compress(images[i], r_vals[i])
+        ratio = compression_ratio(m, n, r_vals[i])
+
+        fig, ax = plt.subplots(1, 2)
+        ax[1].imshow(im_r, cmap='gray')
+        ax[1].set_title("Compressed, r = %i, compression ratio = %5.2f" %(r_vals[i], ratio))
+
+        ax[0].imshow(images[i], cmap='gray')
+        ax[0].set_title('Original, dimensions: %i x %i' %(m, n))
+        plt.show()
+
+
+
 
 
 def main():
@@ -76,16 +84,11 @@ def main():
     images = preprocess_images(dir, image_names)
 
 
-    plt.imshow(images[1])
-    plt.show()
+    #chosen values of r for the images
+    r_vals = [50, 2, 200]
 
-    r = 639
-
-    im_reduced = compress(images[1], r)
-
-    plt.imshow(im_reduced)
-    plt.show()
-
+    plot_images(images, r_vals)
+    plot_singular_values(images, r_vals)
 
 
 
